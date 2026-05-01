@@ -1,0 +1,21 @@
+{
+  "incident_id": "INC-2971816F",
+  "generated_at": "2026-05-01T18:35:49.170942",
+  "alarm_name": "quote-processor-throttles-high",
+  "alarm_type": "lambda_throttle",
+  "severity": "P2",
+  "probable_cause": "Lambda function quote-processor-prod has hit its concurrency limit with 450 throttles in 1 minute during peak quote submission window (2-4pm EST), likely due to reserved concurrency set too low or a slow downstream dependency (RDS/DynamoDB) holding connections longer than expected.",
+  "affected_services": [
+    "quote-processor-prod",
+    "SQS",
+    "RDS"
+  ],
+  "immediate_actions": [
+    "1. CHECK SQS QUEUE DEPTH NOW: Run 'aws cloudwatch get-metric-statistics --namespace AWS/SQS --metric-name ApproximateNumberOfMessagesVisible' for the quote-processor queue \u2014 if depth exceeds 100K, escalate to P1 immediately.",
+    "2. CHECK RESERVED CONCURRENCY: Run 'aws lambda get-function-concurrency --function-name quote-processor-prod' \u2014 if set below 500, temporarily increase to 1000 via 'aws lambda put-function-concurrency --function-name quote-processor-prod --reserved-concurrent-executions 1000' after confirming account-level limit has headroom.",
+    "3. CHECK RDS CONNECTION POOL: Query CloudWatch for DatabaseConnections metric on the RDS instance \u2014 if connections are near max, Lambda is holding connections due to slow queries or timeout misconfiguration; check for long-running queries via RDS Performance Insights immediately."
+  ],
+  "healthcare_impact": "Insurance quote requests are actively failing for end users attempting to obtain coverage pricing during peak afternoon submission window; patients and brokers cannot receive quotes, delaying insurance enrollment decisions and potentially impacting coverage start dates.",
+  "escalate_if": "SQS queue depth exceeds 100K messages, throttle count increases above 1000 in any 5-minute window, RDS connections are maxed out, or throttling continues beyond 15 minutes without improvement after concurrency increase.",
+  "runbook_reference": "RBK-LAMBDA-THROTTLE-001"
+}
