@@ -54,18 +54,18 @@ curl -X POST http://localhost:8000/analyze \
 
 ---
 
-## Architecture
-app/
-├── main.py           # FastAPI + Lambda handler
-├── models.py         # Pydantic schemas
-├── classifier.py     # Alarm type detection
-├── analyzer.py       # Claude API integration
-├── storage.py        # S3 storage
-├── notifier.py       # ServiceNow webhook
-└── prompts/          # Domain-specific LLM prompts
-infra/               # Terraform
-simulator/           # Test alarm publisher
-tests/               # Fixtures + tests
+## Project Structure
+
+- `app/main.py` — FastAPI app + Lambda handler (Mangum)
+- `app/models.py` — Pydantic data schemas
+- `app/classifier.py` — Alarm type detection (8 AWS services)
+- `app/analyzer.py` — Claude API integration
+- `app/storage.py` — S3 storage with local fallback
+- `app/notifier.py` — ServiceNow webhook formatting
+- `app/prompts/` — Domain-specific LLM prompts
+- `infra/` — Terraform infrastructure
+- `simulator/` — CLI tool to publish test alarms
+- `tests/` — Fixtures and unit tests
 
 ---
 
@@ -92,10 +92,7 @@ pytest tests/ -v
 
 ## Tech Stack
 
-**Runtime:** FastAPI + Mangum  
-**LLM:** Claude API  
-**Storage:** S3 with local fallback  
-**Language:** Python 3.9+
+FastAPI + Mangum · Claude API · S3 · Python 3.9+
 
 ---
 
