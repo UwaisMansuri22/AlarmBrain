@@ -1,0 +1,32 @@
+cat > tests/fixtures/rds_cpu_high.json << 'EOF'
+{
+  "AlarmName": "rds-quote-db-cpu-high",
+  "AlarmDescription": "RDS database CPU utilization high",
+  "AWSAccountId": "123456789012",
+  "AlarmConfigurationUpdatedTimestamp": "2024-01-15T08:30:00.000Z",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [87.5 (15/01/24 14:08:00)] was greater than the threshold (80.0).",
+  "StateChangeTime": "2024-01-15T14:09:15.123Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:rds-quote-db-cpu-high",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "CPUUtilization",
+    "Namespace": "AWS/RDS",
+    "StatisticType": "Statistic",
+    "Statistic": "Average",
+    "Unit": "Percent",
+    "Dimensions": [
+      {
+        "value": "cigna-quote-prod",
+        "name": "DBInstanceIdentifier"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 2,
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Threshold": 80.0,
+    "TreatMissingData": "notBreaching"
+  }
+}
+EOF

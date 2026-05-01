@@ -1,0 +1,32 @@
+cat > tests/fixtures/sqs_depth_high.json << 'EOF'
+{
+  "AlarmName": "quote-queue-messages-high",
+  "AlarmDescription": "SQS queue has high message backlog",
+  "AWSAccountId": "123456789012",
+  "AlarmConfigurationUpdatedTimestamp": "2024-01-15T08:30:00.000Z",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [250000.0 (15/01/24 14:05:00)] was greater than the threshold (100000.0).",
+  "StateChangeTime": "2024-01-15T14:06:15.123Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:quote-queue-messages-high",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "ApproximateNumberOfMessagesVisible",
+    "Namespace": "AWS/SQS",
+    "StatisticType": "Statistic",
+    "Statistic": "Average",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "value": "quote-processing-queue",
+        "name": "QueueName"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Threshold": 100000.0,
+    "TreatMissingData": "notBreaching"
+  }
+}
+EOF
