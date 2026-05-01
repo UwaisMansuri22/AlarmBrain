@@ -118,4 +118,53 @@ def list_alarm_types():
     print("Available alarm types:\n")
     for alarm_type in ALARM_TYPES.keys():
         print(f"  • {alarm_type}")
-    print(f"\nUsage: python simulator/publish_alarm.py --type <al
+    print(f"\nUsage: python simulator/publish_alarm.py --type <alarm_type>")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Publish test CloudWatch alarms to SNS for AlarmBrain testing",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python simulator/publish_alarm.py --type lambda_throttle
+  python simulator/publish_alarm.py --type sqs_depth_high --region us-west-2
+  python simulator/publish_alarm.py --list
+        """
+    )
+    
+    parser.add_argument(
+        "--type",
+        help="Alarm type to publish",
+        choices=list(ALARM_TYPES.keys())
+    )
+    parser.add_argument(
+        "--region",
+        default="us-east-1",
+        help="AWS region (default: us-east-1)"
+    )
+    parser.add_argument(
+        "--topic-arn",
+        help="SNS topic ARN (if not set, reads SNS_TOPIC_ARN env var)"
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all available alarm types"
+    )
+    
+    args = parser.parse_args()
+    
+    if args.list:
+        list_alarm_types()
+        return
+    
+    if not args.type:
+        parser.print_help()
+        sys.exit(1)
+    
+    publish_alarm(args.type, args.region, args.topic_arn)
+
+
+if __name__ == "__main__":
+    main()
