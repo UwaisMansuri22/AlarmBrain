@@ -1,0 +1,32 @@
+ALARM TYPE: RDS CPU Utilization High
+
+WHAT HAPPENED:
+RDS instance is at high CPU. This means either queries are slow, there are too many connections, or there's a runaway query.
+
+HEALTHCARE CONTEXT FROM CIGNA:
+- Quote processing queries are fast (bulk inserts/updates)
+- High CPU usually means either:
+  * Unexpected concurrent connections (Lambda not releasing connections)
+  * Slow analytics query running during peak hours
+  * Index missing on frequently queried column
+
+DIAGNOSTIC STEPS (in order):
+1. Check database connections — is it at max? (indicates Lambda holding connections)
+2. Check active queries — is one query consuming all CPU?
+3. Check slow query log — what changed recently?
+4. Check for missing indexes on frequently queried columns
+5. Verify backup or maintenance job isn't running
+
+COMMON PATTERNS:
+- Lambda connection pool not closing connections on error
+- Analytics query started during peak hours (should run off-peak)
+- Query plan changed due to recent schema update
+- Table bloat from soft deletes without vacuuming
+
+SEVERITY GUIDANCE:
+- P1: CPU > 90% + RDS has replication lag + write operations queuing
+- P2: CPU > 80% + connections near max
+- P3: CPU > 70% + can identify the slow query
+- P4: CPU > 60%, normal operations, no user impact visible
+
+RUNBOOK: RBK-RDS-CPU-003

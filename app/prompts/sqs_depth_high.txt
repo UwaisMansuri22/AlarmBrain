@@ -1,0 +1,30 @@
+ALARM TYPE: SQS Queue Depth High
+
+WHAT HAPPENED:
+Messages are accumulating in the queue faster than consumers can process them. This is almost always caused by downstream service degradation (Lambda throttling, RDS slow, network latency).
+
+HEALTHCARE CONTEXT FROM CIGNA:
+- Quote processing queue depth > 100K means 30+ minutes of backlog
+- Insurance renewal batch jobs blocked waiting for queue to drain
+- If pharmacy queue is affected, prescription fulfillment delays
+
+DIAGNOSTIC STEPS (in order):
+1. Check Lambda consumer function throttle metrics — this is the #1 cause
+2. Check RDS CPU/connections/latency — Lambda may be slow due to DB
+3. Check DynamoDB consumed capacity — batch operations may be throttled
+4. Check OpenSearch cluster health — if indexing is slow, downstream queues back up
+5. Review Lambda function logs for errors or timeouts
+
+COMMON PATTERNS:
+- Lambda throttling (check immediately)
+- RDS hitting connection limit
+- DynamoDB write capacity exhausted
+- One slow message blocking the queue (dead letter queue has it)
+
+SEVERITY GUIDANCE:
+- P1: Depth > 1M + still growing, consumer Lambda throttling
+- P2: Depth > 500K + consumer Lambda throttling
+- P3: Depth > 100K, stable/draining
+- P4: Depth > 10K, normal draining rate
+
+RUNBOOK: RBK-SQS-DEPTH-002

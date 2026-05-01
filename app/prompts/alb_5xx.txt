@@ -1,0 +1,32 @@
+ALARM TYPE: 5xx Errors (API Gateway or ALB)
+
+WHAT HAPPENED:
+The API or load balancer is returning 5xx errors to clients. This means backend services are failing or unreachable.
+
+HEALTHCARE CONTEXT FROM CIGNA:
+- 5xx errors = end users cannot submit quotes or renewals
+- Each 5xx affects real people waiting for insurance information
+- Can cascade — if quote API returns 5xx, web app times out, user refreshes, more errors
+
+DIAGNOSTIC STEPS (in order):
+1. Check backend health — are Lambda/EC2 targets healthy?
+2. Check target response time — are targets timing out?
+3. Check Lambda throttling — most common cause for Lambda targets
+4. Check RDS/DB availability — backend query failures return 5xx
+5. Check DynamoDB/OpenSearch — if data layer is down, API returns 5xx
+6. Check security groups — are targets reachable from ALB?
+
+COMMON PATTERNS:
+- Lambda function throttling (most common)
+- Lambda timeout (too short for the operation)
+- Backend database unreachable or overloaded
+- Misconfigured target group health checks
+- Security group blocking traffic between ALB and targets
+
+SEVERITY GUIDANCE:
+- P1: 5xx rate > 10% of traffic, exponential growth, users unable to use service
+- P2: 5xx rate > 5% but stable, some users affected
+- P3: 5xx rate 1-5%, isolated incidents
+- P4: < 1% 5xx rate, likely transient
+
+RUNBOOK: RBK-5XX-ERRORS-004

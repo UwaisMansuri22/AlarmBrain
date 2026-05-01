@@ -1,0 +1,29 @@
+ALARM TYPE: Lambda Throttling
+
+WHAT HAPPENED:
+A Lambda function hit its concurrency limit. New invocations are being rejected or queued. Downstream services waiting for Lambda responses may timeout.
+
+HEALTHCARE CONTEXT FROM CIGNA:
+- Quote processing Lambda throttles during 9-11am and 2-4pm EST (peak submission windows)
+- When throttled, insurance quote requests fail for end users
+- SQS queue depth usually spikes 2-3 minutes after throttling starts
+- RDS connection pool may fill up as Lambda retries back off
+
+DIAGNOSTIC STEPS (in order):
+1. Check reserved concurrency setting — 0 means account-level limit applies
+2. Check SQS queue depth — backpressure is the #1 cause
+3. Verify function timeout — if too short, retries cause cascading throttles
+4. Check for long-running operations inside the function
+
+COMMON PATTERNS:
+- Reserved concurrency set too low for peak load
+- Downstream service (RDS, DynamoDB) is slow, causing Lambda to hold connections longer
+- Dead letter queue (DLQ) misconfigured, causing infinite retries
+
+SEVERITY GUIDANCE:
+- P1: >1000 throttles in 5 minutes + SQS depth > 100K
+- P2: >500 throttles in 5 minutes
+- P3: <500 throttles, no downstream impact visible yet
+- P4: Isolated throttles, SQS depth normal
+
+RUNBOOK: RBK-LAMBDA-THROTTLE-001
