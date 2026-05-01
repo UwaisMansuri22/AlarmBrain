@@ -57,22 +57,18 @@ curl -X POST http://localhost:8000/analyze \
 ## Project Structure
 
 **Core Application**
-
 - `app/main.py` — FastAPI app with Lambda handler
 - `app/models.py` — Pydantic data schemas
 - `app/classifier.py` — Identifies alarm type across 8 AWS services
-- `app/analyzer.py` — Claude API integration for incident analysis
+- `app/analyzer.py` — Claude API integration
 - `app/storage.py` — S3 storage with local fallback
-- `app/notifier.py` — ServiceNow webhook payload formatting
+- `app/notifier.py` — ServiceNow webhook formatting
 - `app/prompts/` — Domain-specific prompts encoding healthcare operational knowledge
 
-**Infrastructure & Testing**
-
-- `infra/` — Terraform for Lambda, SNS, S3 deployment
+**Infrastructure and Testing**
+- `infra/` — Terraform for Lambda, SNS, S3
 - `simulator/` — CLI tool to publish test alarms
-- `tests/` — Test fixtures and unit tests
-
----
+- `tests/` — Fixtures and unit tests
 
 ## API Endpoints
 
