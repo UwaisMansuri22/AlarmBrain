@@ -25,9 +25,8 @@ class IncidentStorage:
         Save an incident brief to S3.
         
         Returns the S3 key (path) where the brief was stored.
-        If bucket doesn't exist or AWS credentials missing, logs locally instead.
         """
-    
+        
         # Generate S3 key: incident_history/YYYY/MM/DD/incident_id.json
         now = datetime.utcnow()
         year = now.strftime("%Y")
@@ -39,7 +38,7 @@ class IncidentStorage:
         # Convert brief to JSON
         body = json.dumps(brief.dict(), indent=2)
         
-        # Try to upload to S3
+        # Upload to S3
         try:
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
@@ -47,88 +46,50 @@ class IncidentStorage:
                 Body=body,
                 ContentType="application/json"
             )
-            print(f"✓ Saved incident brief to s3://{self.bucket_name}/{key}")
+            print(f"Saved incident brief to s3://{self.bucket_name}/{key}")
             return key
         except Exception as e:
-            # Fallback: log to local file for testing
-            print(f"⚠ S3 unavailable ({type(e).__name__}), logging locally instead")
-            local_path = Path(f"incident_history/{year}/{month}/{day}")
-            local_path.mkdir(parents=True, exist_ok=True)
-            filepath = local_path / f"{brief.incident_id}.json"
-            filepath.write_text(body)
-            print(f"✓ Saved incident brief locally to {filepath}")
-            return str(filepath)
-        
-    # def save(self, brief: IncidentBrief) -> str:
-    #     """
-    #     Save an incident brief to S3.
-        
-    #     Returns the S3 key (path) where the brief was stored.
-    #     """
-        
-    #     # Generate S3 key: incident_history/YYYY/MM/DD/incident_id.json
-    #     now = datetime.utcnow()
-    #     year = now.strftime("%Y")
-    #     month = now.strftime("%m")
-    #     day = now.strftime("%d")
-        
-    #     key = f"incident_history/{year}/{month}/{day}/{brief.incident_id}.json"
-        
-    #     # Convert brief to JSON
-    #     body = json.dumps(brief.dict(), indent=2)
-        
-    #     # Upload to S3
-    #     try:
-    #         self.s3_client.put_object(
-    #             Bucket=self.bucket_name,
-    #             Key=key,
-    #             Body=body,
-    #             ContentType="application/json"
-    #         )
-    #         print(f"Saved incident brief to s3://{self.bucket_name}/{key}")
-    #         return key
-    #     except Exception as e:
-    #         print(f"Error saving to S3: {e}")
-    #         raise
+            print(f"Error saving to S3: {e}")
+            raise
     
-    # def get_incidents_by_date(self, year: str, month: str, day: str) -> list[dict]:
-    #     """
-    #     Retrieve all incidents for a specific date.
+    def get_incidents_by_date(self, year: str, month: str, day: str) -> list[dict]:
+        """
+        Retrieve all incidents for a specific date.
         
-    #     Args:
-    #         year: YYYY format
-    #         month: MM format
-    #         day: DD format
+        Args:
+            year: YYYY format
+            month: MM format
+            day: DD format
         
-    #     Returns:
-    #         List of incident briefs as dicts
-    #     """
+        Returns:
+            List of incident briefs as dicts
+        """
         
-    #     prefix = f"incident_history/{year}/{month}/{day}/"
+        prefix = f"incident_history/{year}/{month}/{day}/"
         
-    #     try:
-    #         response = self.s3_client.list_objects_v2(
-    #             Bucket=self.bucket_name,
-    #             Prefix=prefix
-    #         )
+        try:
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name,
+                Prefix=prefix
+            )
             
-    #         incidents = []
-    #         if "Contents" not in response:
-    #             return incidents
+            incidents = []
+            if "Contents" not in response:
+                return incidents
             
-    #         for obj in response["Contents"]:
-    #             file_response = self.s3_client.get_object(
-    #                 Bucket=self.bucket_name,
-    #                 Key=obj["Key"]
-    #             )
-    #             body = file_response["Body"].read().decode("utf-8")
-    #             incident = json.loads(body)
-    #             incidents.append(incident)
+            for obj in response["Contents"]:
+                file_response = self.s3_client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=obj["Key"]
+                )
+                body = file_response["Body"].read().decode("utf-8")
+                incident = json.loads(body)
+                incidents.append(incident)
             
-    #         return incidents
-    #     except Exception as e:
-    #         print(f"Error retrieving incidents from S3: {e}")
-    #         return []
+            return incidents
+        except Exception as e:
+            print(f"Error retrieving incidents from S3: {e}")
+            return []
     
     def get_incident_by_id(self, incident_id: str, year: str, month: str, day: str) -> dict:
         """
