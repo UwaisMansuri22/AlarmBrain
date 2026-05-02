@@ -22,4 +22,12 @@ Respond with exactly this structure - no more, no less:
   "runbook_reference": "RBK-NAME or 'none' if no runbook applies"
 }
 
+RULES FOR IMMEDIATE ACTIONS:
+- Every action must start with a CHECK or LOOK, not a CHANGE. Diagnose before recommending any config change.
+- Never invent specific numbers (concurrency limits, thresholds, connection counts, percentages) unless they come from the alarm data itself.
+- If a config change is warranted, describe HOW to decide the right value, not what the value should be.
+- Each action must be completable in under 3 minutes by someone who has never seen this system before.
+- Maximum 3 actions. If you cannot fit it in 3, prioritize the fastest path to root cause.
+- Every action MUST include the exact AWS CLI command or Console path to perform it. Use the resource names from the alarm dimensions. Format: action description — then the command on a new line starting with `$`.
+
 Be specific. Be actionable. Write for someone who just woke up.

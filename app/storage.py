@@ -1,7 +1,6 @@
 import json
 import boto3
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime, timezone
 
 from app.models import IncidentBrief
 
@@ -26,7 +25,7 @@ class IncidentStorage:
         
         Returns the S3 key (path) where the brief was stored.
         """
-   
+        now = datetime.now(timezone.utc)
         year = now.strftime("%Y")
         month = now.strftime("%m")
         day = now.strftime("%d")

@@ -1,6 +1,8 @@
 import json
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from mangum import Mangum
 import logging
 
@@ -21,6 +23,15 @@ app = FastAPI(
     description="AI-powered incident intelligence for on-call engineers",
     version="0.1.0"
 )
+
+_static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
+
+
+@app.get("/")
+def serve_ui():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static/index.html"))
 
 analyzer = IncidentAnalyzer()
 storage = IncidentStorage()

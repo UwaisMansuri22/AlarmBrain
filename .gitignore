@@ -21,7 +21,9 @@ lambda.zip
 incident_history/
 infra/terraform.tfstate
 infra/terraform.tfstate.backup
+infra/terraform.tfvars
 infra/.terraform/
 tests/fixtures/.env
 *.tfstate
 *.tfstate.backup
+*.tfvars

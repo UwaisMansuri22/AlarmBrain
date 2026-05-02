@@ -26,14 +26,10 @@ package:
 	@echo "✅ lambda.zip ready for Linux/amd64"
 
 deploy: package
-	cd infra && terraform init && terraform apply \
-		-var="claude_api_key=$(CLAUDE_API_KEY)" \
-		-auto-approve
+	cd infra && terraform init && terraform apply -auto-approve
 
 destroy:
-	cd infra && terraform destroy \
-		-var="claude_api_key=$(CLAUDE_API_KEY)" \
-		-auto-approve
+	cd infra && terraform destroy -auto-approve
 
 clean:
 	rm -rf package/ lambda.zip

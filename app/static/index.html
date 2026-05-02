@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlarmBrain · AI Incident Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --card:      #111111;
+      --border:    #1e1e1e;
+      --green:     #00ff88;
+      --amber:     #ffb800;
+      --red:       #ff4444;
+      --text:      #e0e0e0;
+      --muted:     #666;
+      --mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --sans:      'Inter', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .header-left h1 {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 18px;
+      background: var(--green);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 1.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    .header-left .subtitle {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .header-right {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 6px var(--green); }
+      50%       { box-shadow: 0 0 14px var(--green); }
+    }
+
+    /* ── Main layout ─────────────────────────────────────── */
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Panels ──────────────────────────────────────────── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+
+    .panel-left  { width: 45%; border-right: 1px solid var(--border); }
+    .panel-right { width: 55%; }
+
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    /* ── Sample buttons ──────────────────────────────────── */
+    .sample-btns {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .sample-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 9px 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      text-align: center;
+    }
+
+    .sample-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .sample-btn.active {
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
+    }
+
+    /* ── Textarea ────────────────────────────────────────── */
+    .input-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      height: 340px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      caret-color: var(--green);
+    }
+
+    textarea::placeholder { color: var(--muted); }
+
+    textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.1);
+    }
+
+    /* ── Analyze button ──────────────────────────────────── */
+    .analyze-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--green);
+      color: #000;
+      border: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.35);
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Right panel states ──────────────────────────────── */
+    .empty-state {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+    }
+
+    /* ── Loading state ───────────────────────────────────── */
+    .loading-state {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--green);
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 20px;
+    }
+
+    .loading-line { opacity: 0.4; transition: opacity 0.3s; }
+    .loading-line.active { opacity: 1; }
+
+    .loading-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 13px;
+      background: var(--green);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.6s step-end infinite;
+    }
+
+    /* ── Error state ─────────────────────────────────────── */
+    .error-state {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--red);
+      display: none;
+      padding: 16px;
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      background: rgba(255, 68, 68, 0.05);
+      margin-top: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Result panel ────────────────────────────────────── */
+    #result {
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .incident-id {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .incident-id::before {
+      content: '●';
+      font-size: 10px;
+    }
+
+    .incident-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .result-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .result-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding-top: 2px;
+    }
+
+    .result-value {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* ── Severity badge ──────────────────────────────────── */
+    .severity-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .sev-P1 { background: var(--red);   color: #000; box-shadow: 0 0 10px rgba(255,68,68,0.4); }
+    .sev-P2 { background: var(--amber); color: #000; box-shadow: 0 0 10px rgba(255,184,0,0.4); }
+    .sev-P3 { background: var(--green); color: #000; box-shadow: 0 0 10px rgba(0,255,136,0.4); }
+    .sev-P4 { background: #444;         color: #fff; }
+
+    /* ── Section blocks ──────────────────────────────────── */
+    .result-section {
+      margin-bottom: 18px;
+    }
+
+    .result-section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .result-section-value {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Service badges ──────────────────────────────────── */
+    .service-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .service-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: var(--green);
+      background: rgba(0, 255, 136, 0.05);
+    }
+
+    /* ── Actions list ────────────────────────────────────── */
+    .actions-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+    .action-item {
+      display: flex;
+      gap: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .action-num {
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+      min-width: 22px;
+    }
+
+    .action-text { color: var(--text); }
+
+    /* ── Runbook ─────────────────────────────────────────── */
+    .runbook-ref {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 3px 12px;
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      background: rgba(255, 184, 0, 0.05);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Copy button ─────────────────────────────────────── */
+    .copy-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .copy-btn.copied {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    footer span, footer a {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+    }
+
+    footer a:hover { color: var(--green); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      main { flex-direction: column; overflow: visible; }
+      .panel-left, .panel-right { width: 100%; border-right: none; }
+      .panel-left  { border-bottom: 1px solid var(--border); }
+      textarea { height: 220px; }
+      header { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .header-right { display: none; }
+      footer { flex-direction: column; gap: 4px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────────── -->
+<header>
+  <div class="header-left">
+    <h1>AlarmBrain&nbsp;&nbsp;·&nbsp;&nbsp;<span class="cursor"></span></h1>
+    <div class="subtitle">AI-powered incident intelligence &nbsp;·&nbsp; AWS CloudWatch → Claude API</div>
+  </div>
+  <div class="header-right">
+    <span class="status-dot"></span>LIVE&nbsp;&nbsp;|&nbsp;&nbsp;us-east-1&nbsp;&nbsp;|&nbsp;&nbsp;claude-sonnet-4-6
+  </div>
+</header>
+
+<!-- ── Main ─────────────────────────────────────────────── -->
+<main>
+
+  <!-- LEFT PANEL -->
+  <section class="panel panel-left">
+    <div class="panel-title">Alarm Input</div>
+    <hr class="divider" />
+
+    <div class="sample-btns">
+      <button class="sample-btn" data-sample="lambda">LAMBDA THROTTLE</button>
+      <button class="sample-btn" data-sample="sqs">SQS DEPTH</button>
+      <button class="sample-btn" data-sample="rds">RDS CPU</button>
+      <button class="sample-btn" data-sample="api">API 5XX</button>
+    </div>
+
+    <label class="input-label" for="alarm-input">// PASTE CLOUDWATCH ALARM JSON OR SELECT A SAMPLE ABOVE</label>
+    <textarea
+      id="alarm-input"
+      spellcheck="false"
+      placeholder='{&#10;  "AlarmName": "...",&#10;  "Trigger": { ... }&#10;}'
+    ></textarea>
+
+    <button class="analyze-btn" id="analyze-btn">
+      <div class="spinner" id="spinner"></div>
+      <span id="btn-text">ANALYZE ALARM →</span>
+    </button>
+
+    <div class="error-state" id="error-state"></div>
+  </section>
+
+  <!-- RIGHT PANEL -->
+  <section class="panel panel-right">
+    <div class="panel-title">Incident Brief</div>
+    <hr class="divider" />
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+      <span>// Waiting for alarm input_</span>
+    </div>
+
+    <!-- Loading state -->
+    <div class="loading-state" id="loading-state">
+      <div class="loading-line" id="ll-0">// Analyzing alarm...</div>
+      <div class="loading-line" id="ll-1">// Classifying service type...</div>
+      <div class="loading-line" id="ll-2">// Querying Claude API...</div>
+      <div class="loading-line" id="ll-3">// Generating incident brief<span class="loading-cursor"></span></div>
+    </div>
+
+    <!-- Result -->
+    <div id="result">
+      <div class="result-header">
+        <div class="incident-id" id="r-incident-id"></div>
+        <div class="incident-meta" id="r-meta"></div>
+      </div>
+      <hr class="result-divider" />
+
+      <div class="result-grid">
+        <div class="result-label">SEVERITY</div>
+        <div><span class="severity-badge" id="r-severity"></span></div>
+        <div class="result-label">ALARM TYPE</div>
+        <div class="result-value" id="r-alarm-type"></div>
+        <div class="result-label">ALARM NAME</div>
+        <div class="result-value" id="r-alarm-name"></div>
+      </div>
+
+      <hr class="result-divider" />
+
+      <div class="result-section">
+        <div class="result-section-label">Probable Cause</div>
+        <div class="result-section-value" id="r-cause"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">Affected Services</div>
+        <div class="service-badges" id="r-services"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">Immediate Actions</div>
+        <ul class="actions-list" id="r-actions"></ul>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">Healthcare Impact</div>
+        <div class="result-section-value" id="r-impact"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">Escalate If</div>
+        <div class="result-section-value" id="r-escalate"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">Runbook</div>
+        <span class="runbook-ref" id="r-runbook"></span>
+      </div>
+
+      <hr class="result-divider" />
+      <button class="copy-btn" id="copy-btn">[ COPY JSON ]</button>
+    </div>
+  </section>
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────── -->
+<footer>
+  <span>Built by Uwais Mansuri &nbsp;·&nbsp; Cloud Platform &amp; SRE Engineer</span>
+  <span>
+    <a href="https://github.com/UwaisMansuri22/AlarmBrain" target="_blank">github.com/UwaisMansuri22/AlarmBrain</a>
+    &nbsp;·&nbsp;
+    <a href="https://uwaismansuri.com" target="_blank">uwaismansuri.com</a>
+  </span>
+</footer>
+
+<script>
+  const SAMPLES = {
+    lambda: {
+      AlarmName: "quote-processor-throttles-high",
+      AlarmDescription: "Lambda function throttling detected on quote processing service",
+      AWSAccountId: "123456789012",
+      NewStateValue: "ALARM",
+      NewStateReason: "Threshold Crossed: 450 throttles greater than 100",
+      StateChangeTime: "2024-01-15T14:03:15.123Z",
+      Region: "us-east-1",
+      OldStateValue: "OK",
+      Trigger: {
+        MetricName: "Throttles",
+        Namespace: "AWS/Lambda",
+        Statistic: "Sum",
+        StatisticType: "Statistic",
+        Dimensions: [{ name: "FunctionName", value: "quote-processor-prod" }],
+        Period: 60,
+        EvaluationPeriods: 1,
+        ComparisonOperator: "GreaterThanThreshold",
+        Threshold: 100.0,
+        TreatMissingData: "notBreaching"
+      }
+    },
+    sqs: {
+      AlarmName: "quote-queue-messages-high",
+      AlarmDescription: "SQS queue has high message backlog",
+      AWSAccountId: "123456789012",
+      NewStateValue: "ALARM",
+      NewStateReason: "Threshold Crossed: 250000 messages greater than 100000",
+      StateChangeTime: "2024-01-15T14:06:15.123Z",
+      Region: "us-east-1",
+      OldStateValue: "OK",
+      Trigger: {
+        MetricName: "ApproximateNumberOfMessagesVisible",
+        Namespace: "AWS/SQS",
+        Statistic: "Average",
+        StatisticType: "Statistic",
+        Dimensions: [{ name: "QueueName", value: "quote-processing-queue" }],
+        Period: 300,
+        EvaluationPeriods: 1,
+        ComparisonOperator: "GreaterThanThreshold",
+        Threshold: 100000.0,
+        TreatMissingData: "notBreaching"
+      }
+    },
+    rds: {
+      AlarmName: "rds-quote-db-cpu-high",
+      AlarmDescription: "RDS database CPU utilization high",
+      AWSAccountId: "123456789012",
+      NewStateValue: "ALARM",
+      NewStateReason: "Threshold Crossed: 87.5% greater than 80%",
+      StateChangeTime: "2024-01-15T14:09:15.123Z",
+      Region: "us-east-1",
+      OldStateValue: "OK",
+      Trigger: {
+        MetricName: "CPUUtilization",
+        Namespace: "AWS/RDS",
+        Statistic: "Average",
+        StatisticType: "Statistic",
+        Dimensions: [{ name: "DBInstanceIdentifier", value: "cigna-quote-prod" }],
+        Period: 300,
+        EvaluationPeriods: 2,
+        ComparisonOperator: "GreaterThanThreshold",
+        Threshold: 80.0,
+        TreatMissingData: "notBreaching"
+      }
+    },
+    api: {
+      AlarmName: "api-gateway-5xx-errors",
+      AlarmDescription: "API Gateway returning 5xx errors",
+      AWSAccountId: "123456789012",
+      NewStateValue: "ALARM",
+      NewStateReason: "Threshold Crossed: 42 errors greater than 10",
+      StateChangeTime: "2024-01-15T14:13:15.123Z",
+      Region: "us-east-1",
+      OldStateValue: "OK",
+      Trigger: {
+        MetricName: "5XXError",
+        Namespace: "AWS/ApiGateway",
+        Statistic: "Sum",
+        StatisticType: "Statistic",
+        Dimensions: [{ name: "ApiName", value: "quote-api-prod" }],
+        Period: 60,
+        EvaluationPeriods: 1,
+        ComparisonOperator: "GreaterThanThreshold",
+        Threshold: 10.0,
+        TreatMissingData: "notBreaching"
+      }
+    }
+  };
+
+  const textarea    = document.getElementById('alarm-input');
+  const analyzeBtn  = document.getElementById('analyze-btn');
+  const btnText     = document.getElementById('btn-text');
+  const spinner     = document.getElementById('spinner');
+  const emptyState  = document.getElementById('empty-state');
+  const loadingState= document.getElementById('loading-state');
+  const errorState  = document.getElementById('error-state');
+  const result      = document.getElementById('result');
+  const copyBtn     = document.getElementById('copy-btn');
+
+  let lastBrief = null;
+
+  // ── Sample buttons ──────────────────────────────────────
+  document.querySelectorAll('.sample-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sample-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      textarea.value = JSON.stringify(SAMPLES[btn.dataset.sample], null, 2);
+    });
+  });
+
+  // ── Auto pretty-print on paste ──────────────────────────
+  textarea.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    try {
+      textarea.value = JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      textarea.value = text;
+    }
+  });
+
+  // ── Loading cycle ───────────────────────────────────────
+  let loadingInterval = null;
+  const loadingLines = [
+    document.getElementById('ll-0'),
+    document.getElementById('ll-1'),
+    document.getElementById('ll-2'),
+    document.getElementById('ll-3'),
+  ];
+
+  function startLoading() {
+    let step = 0;
+    loadingLines.forEach(l => l.classList.remove('active'));
+    loadingLines[0].classList.add('active');
+    loadingInterval = setInterval(() => {
+      step = (step + 1) % loadingLines.length;
+      loadingLines.forEach(l => l.classList.remove('active'));
+      loadingLines[step].classList.add('active');
+    }, 600);
+  }
+
+  function stopLoading() {
+    if (loadingInterval) clearInterval(loadingInterval);
+    loadingInterval = null;
+  }
+
+  // ── Show states ─────────────────────────────────────────
+  function showState(state) {
+    emptyState.style.display   = 'none';
+    loadingState.style.display = 'none';
+    errorState.style.display   = 'none';
+    result.style.display       = 'none';
+
+    if (state === 'empty')   { emptyState.style.display = 'flex'; }
+    if (state === 'loading') { loadingState.style.display = 'flex'; startLoading(); }
+    if (state === 'error')   { errorState.style.display = 'block'; }
+    if (state === 'result')  { result.style.display = 'block'; }
+  }
+
+  // ── Render result ───────────────────────────────────────
+  function renderResult(data) {
+    const brief = data.incident_brief;
+    lastBrief = data;
+
+    document.getElementById('r-incident-id').textContent = brief.incident_id;
+
+    const ts = brief.generated_at
+      ? brief.generated_at.replace('T', ' · ').replace(/\.\d+.*$/, '')
+      : '';
+    document.getElementById('r-meta').textContent = ts + (brief.alarm_name ? ' · ' + (brief.alarm_type || '') : '');
+
+    const sev = document.getElementById('r-severity');
+    sev.textContent = brief.severity;
+    sev.className = 'severity-badge sev-' + brief.severity;
+
+    document.getElementById('r-alarm-type').textContent = brief.alarm_type || '—';
+    document.getElementById('r-alarm-name').textContent = brief.alarm_name || '—';
+    document.getElementById('r-cause').textContent = brief.probable_cause || '—';
+    document.getElementById('r-impact').textContent = brief.healthcare_impact || '—';
+    document.getElementById('r-escalate').textContent = brief.escalate_if || '—';
+    document.getElementById('r-runbook').textContent = brief.runbook_reference || 'none';
+
+    const servicesEl = document.getElementById('r-services');
+    servicesEl.innerHTML = '';
+    (brief.affected_services || []).forEach(svc => {
+      const badge = document.createElement('span');
+      badge.className = 'service-badge';
+      badge.textContent = svc;
+      servicesEl.appendChild(badge);
+    });
+
+    const actionsEl = document.getElementById('r-actions');
+    actionsEl.innerHTML = '';
+    (brief.immediate_actions || []).forEach((action, i) => {
+      const li = document.createElement('li');
+      li.className = 'action-item';
+      li.innerHTML = `<span class="action-num">${String(i + 1).padStart(2, '0')}</span><span class="action-text">${escapeHtml(action)}</span>`;
+      actionsEl.appendChild(li);
+    });
+
+    showState('result');
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Analyze ─────────────────────────────────────────────
+  analyzeBtn.addEventListener('click', async () => {
+    const raw = textarea.value.trim();
+    if (!raw) {
+      showState('error');
+      errorState.textContent = '[ERROR] No alarm JSON provided. Paste a CloudWatch alarm or select a sample.';
+      return;
+    }
+
+    try { JSON.parse(raw); }
+    catch {
+      showState('error');
+      errorState.textContent = '[ERROR] Invalid JSON — could not parse alarm payload.\n' + getJsonError(raw);
+      return;
+    }
+
+    analyzeBtn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'ANALYZING...';
+    showState('loading');
+    errorState.style.display = 'none';
+
+    try {
+      const response = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: raw
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || `HTTP ${response.status}`);
+      }
+
+      stopLoading();
+      renderResult(data);
+    } catch (err) {
+      stopLoading();
+      showState('error');
+      errorState.textContent = '[ERROR] ' + err.message;
+    } finally {
+      analyzeBtn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'ANALYZE ALARM →';
+    }
+  });
+
+  function getJsonError(raw) {
+    try { JSON.parse(raw); return ''; }
+    catch (e) { return e.message; }
+  }
+
+  // ── Copy JSON ────────────────────────────────────────────
+  copyBtn.addEventListener('click', () => {
+    if (!lastBrief) return;
+    navigator.clipboard.writeText(JSON.stringify(lastBrief.incident_brief, null, 2)).then(() => {
+      copyBtn.textContent = '[ COPIED ✓ ]';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = '[ COPY JSON ]';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    });
+  });
+</script>
+</body>
+</html>

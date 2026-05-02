@@ -16,9 +16,21 @@ DIAGNOSTIC STEPS (in order):
 4. Check for long-running operations inside the function
 
 COMMON PATTERNS:
-- Reserved concurrency set too low for peak load
-- Downstream service (RDS, DynamoDB) is slow, causing Lambda to hold connections longer
-- Dead letter queue (DLQ) misconfigured, causing infinite retries
+- Reserved concurrency set too low for peak load — fix is to raise it, but only after confirming the downstream (RDS/SQS) can absorb the increased throughput
+- Downstream service (RDS, DynamoDB) is slow, holding Lambda connections longer than usual — raising concurrency here will make the downstream problem worse, not better
+- DLQ misconfigured or missing — failed invocations retry indefinitely, compounding the throttle count
+
+ACTION GUIDANCE:
+- The right immediate action is always to identify WHICH of the above patterns is occurring before touching any config.
+- SQS queue depth tells you if there is backpressure. RDS connection count tells you if the downstream is the bottleneck. Check these first.
+- If reserved concurrency needs adjustment, the engineer should look at the current setting and the peak concurrent executions metric in CloudWatch, then raise to 20-30% above observed peak — not to an arbitrary number.
+- Do not suggest specific concurrency values. Do not suggest specific connection counts. These are environment-specific.
+
+EXAMPLE CLI COMMANDS (use actual resource names from the alarm dimensions, not these examples):
+- Check reserved concurrency: aws lambda get-function-concurrency --function-name <FunctionName>
+- Check peak concurrent executions: aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name ConcurrentExecutions --dimensions Name=FunctionName,Value=<FunctionName> --start-time <15min ago> --end-time <now> --period 60 --statistics Maximum
+- Check SQS depth: aws sqs get-queue-attributes --queue-url <queue-url> --attribute-names ApproximateNumberOfMessages
+- Check DLQ depth: aws sqs get-queue-attributes --queue-url <dlq-url> --attribute-names ApproximateNumberOfMessages
 
 SEVERITY GUIDANCE:
 - P1: >1000 throttles in 5 minutes + SQS depth > 100K

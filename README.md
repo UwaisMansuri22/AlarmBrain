@@ -44,7 +44,8 @@ git clone https://github.com/UwaisMansuri22/AlarmBrain.git
 cd AlarmBrain
 pip install -r requirements.txt
 
-export CLAUDE_API_KEY="sk-..."
+cp tests/fixtures/.env.example tests/fixtures/.env
+# add your key to .env: ANTHROPIC_API_KEY=sk-ant-...
 python3 -m uvicorn app.main:app --reload
 
 curl -X POST http://localhost:8000/analyze \
