@@ -117,7 +117,7 @@ def analyze_alarm(alarm: AlarmPayload):
         snow_payload = notifier.notify(brief)
         
         return {
-            "incident_brief": brief.dict(),
+            "incident_brief": brief.model_dump(),
             "s3_key": s3_key,
             "snow_payload": snow_payload
         }

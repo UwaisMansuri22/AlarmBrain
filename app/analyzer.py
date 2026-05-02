@@ -105,7 +105,7 @@ Threshold: {alarm.trigger.threshold}
 Comparison: {alarm.trigger.comparison_operator}
 
 Affected Resource Dimensions:
-{json.dumps([d.dict() for d in alarm.trigger.dimensions], indent=2)}
+{json.dumps([d.model_dump() for d in alarm.trigger.dimensions], indent=2)}
 
 Now analyze this alarm. Respond ONLY with a valid JSON object matching this exact schema:
 {{

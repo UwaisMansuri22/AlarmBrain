@@ -26,9 +26,7 @@ class IncidentStorage:
         
         Returns the S3 key (path) where the brief was stored.
         """
-        
-        # Generate S3 key: incident_history/YYYY/MM/DD/incident_id.json
-        now = datetime.utcnow()
+   
         year = now.strftime("%Y")
         month = now.strftime("%m")
         day = now.strftime("%d")
@@ -36,7 +34,7 @@ class IncidentStorage:
         key = f"incident_history/{year}/{month}/{day}/{brief.incident_id}.json"
         
         # Convert brief to JSON
-        body = json.dumps(brief.dict(), indent=2)
+        body = json.dumps(brief.model_dump(), indent=2)
         
         # Upload to S3
         try:

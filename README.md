@@ -2,7 +2,7 @@
 
 AI-powered incident analysis for CloudWatch alarms. Transforms raw alerts into structured incident briefs with probable cause, immediate actions, and healthcare business impact.
 
-Built from 4+ years of production on-call experience in regulated healthcare.
+Built from 4+ years of production support experience operating enterprise healthcare platforms at Cigna.
 
 ---
 

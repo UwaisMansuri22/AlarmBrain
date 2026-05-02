@@ -46,7 +46,7 @@ resource "aws_lambda_function" "alarmbrain" {
     variables = {
       ENVIRONMENT      = var.environment
       S3_BUCKET_NAME   = aws_s3_bucket.incidents.bucket
-      CLAUDE_API_KEY   = var.claude_api_key
+      ANTHROPIC_API_KEY = var.claude_api_key
     }
   }
 }

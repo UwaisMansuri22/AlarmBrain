@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -12,6 +12,8 @@ class AlarmDimension(BaseModel):
 
 
 class AlarmTrigger(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     metric_name: str = Field(alias="MetricName")
     namespace: str = Field(alias="Namespace")
     statistic: str = Field(alias="Statistic")
@@ -20,11 +22,10 @@ class AlarmTrigger(BaseModel):
     threshold: float = Field(alias="Threshold")
     comparison_operator: str = Field(alias="ComparisonOperator")
 
-    class Config:
-        populate_by_name = True
-
 
 class AlarmPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     alarm_name: str = Field(alias="AlarmName")
     alarm_description: str = Field(default="No description", alias="AlarmDescription")
     aws_account_id: str = Field(alias="AWSAccountId")
@@ -33,9 +34,6 @@ class AlarmPayload(BaseModel):
     state_change_time: str = Field(alias="StateChangeTime")
     region: str = Field(alias="Region")
     trigger: AlarmTrigger = Field(alias="Trigger")
-
-    class Config:
-        populate_by_name = True
 
 
 # ── Alarm types AlarmBrain can classify ───────────────────────────────────────
@@ -54,7 +52,7 @@ AlarmType = Literal[
 
 class IncidentBrief(BaseModel):
     incident_id: str = Field(default_factory=lambda: f"INC-{uuid.uuid4().hex[:8].upper()}")
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     alarm_name: str
     alarm_type: AlarmType
     severity: Literal["P1", "P2", "P3", "P4"]

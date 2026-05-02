@@ -1,25 +1,21 @@
-cat > tests/fixtures/lambda_throttle.json << 'EOF'
 {
   "AlarmName": "quote-processor-throttles-high",
-  "AlarmDescription": "Lambda function throttling detected on quote processing service",
+  "AlarmDescription": "Lambda function throttling detected",
   "AWSAccountId": "123456789012",
-  "AlarmConfigurationUpdatedTimestamp": "2024-01-15T08:30:00.000Z",
   "NewStateValue": "ALARM",
-  "NewStateReason": "Threshold Crossed: 450 datapoints [450.0 (15/01/24 14:02:00)] was greater than the threshold (100.0).",
+  "NewStateReason": "Threshold Crossed: 450 throttles greater than 100",
   "StateChangeTime": "2024-01-15T14:03:15.123Z",
   "Region": "us-east-1",
-  "AlarmArn": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:quote-processor-throttles-high",
   "OldStateValue": "OK",
   "Trigger": {
     "MetricName": "Throttles",
     "Namespace": "AWS/Lambda",
-    "StatisticType": "Statistic",
     "Statistic": "Sum",
-    "Unit": null,
+    "StatisticType": "Statistic",
     "Dimensions": [
       {
-        "value": "quote-processor-prod",
-        "name": "FunctionName"
+        "name": "FunctionName",
+        "value": "quote-processor-prod"
       }
     ],
     "Period": 60,
@@ -29,4 +25,3 @@ cat > tests/fixtures/lambda_throttle.json << 'EOF'
     "TreatMissingData": "notBreaching"
   }
 }
-EOF
