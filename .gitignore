@@ -27,3 +27,4 @@ tests/fixtures/.env
 *.tfstate
 *.tfstate.backup
 *.tfvars
+NOTES.md
